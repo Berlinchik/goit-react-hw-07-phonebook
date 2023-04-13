@@ -1,48 +1,45 @@
 import { useState } from 'react';
 import s from './ContactForm.module.scss';
 import { nanoid } from 'nanoid';
-import { addContacts } from '../../redux/contactsSlice';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
-import { getContacts } from '../../redux/selectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectContacts } from '../../redux/selectors';
+import { addContacts } from '../../redux/operations';
+
+const initState = {
+  name: '',
+  phone: '',
+};
 
 const ContactForm = () => {
-  const [userName, setUserName] = useState('');
-  const [number, setNumber] = useState('');
-  const contacts = useSelector(getContacts);
-
+  const [form, setForm] = useState(initState);
+  const contacts = useSelector(selectContacts);
+  const isLoading = useSelector(state => state.items.isLoading);
   const dispatch = useDispatch();
 
-  const handleInputChange = event => {
-    const { value, name } = event.currentTarget;
-    switch (name) {
-      case 'userName':
-        setUserName(value);
-        break;
-      case 'number':
-        setNumber(value);
-        break;
-      default:
-        return;
-    }
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setForm(prevForm => {
+      return {
+        ...prevForm,
+        [name]: value,
+      };
+    });
   };
 
   const handleSubmit = e => {
     e.preventDefault();
 
-    const value = e.currentTarget.elements.userName.value;
+    const value = e.currentTarget.elements.name.value;
     const elem = contacts.find(
-      ({ userName }) => userName.toLowerCase() === value.toLowerCase()
+      ({ name }) => name.toLowerCase() === value.toLowerCase()
     );
 
     if (!elem) {
-      dispatch(addContacts({ userName, number }));
+      dispatch(addContacts({ ...form }));
     } else {
-      return alert(`${elem.userName} is already in contacts`);
+      return alert(`${elem.name} is already in contacts`);
     }
-
-    setUserName('');
-    setNumber('');
+    setForm(initState);
   };
 
   const nameId = nanoid();
@@ -56,12 +53,12 @@ const ContactForm = () => {
           className={s.input}
           id={nameId}
           type="text"
-          name="userName"
+          name="name"
           pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
           title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
           required
-          value={userName}
-          onChange={handleInputChange}
+          value={form.name}
+          onChange={handleChange}
         />
       </label>
       <label className={s.label} htmlFor={numId}>
@@ -70,12 +67,12 @@ const ContactForm = () => {
           className={s.input}
           id={numId}
           type="tel"
-          name="number"
+          name="phone"
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
           title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
           required
-          value={number}
-          onChange={handleInputChange}
+          value={form.phone}
+          onChange={handleChange}
         />
       </label>
       <button className={s.btn}>Add contact</button>
