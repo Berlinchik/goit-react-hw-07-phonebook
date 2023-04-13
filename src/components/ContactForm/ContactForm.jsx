@@ -13,7 +13,6 @@ const initState = {
 const ContactForm = () => {
   const [form, setForm] = useState(initState);
   const contacts = useSelector(selectContacts);
-  const isLoading = useSelector(state => state.items.isLoading);
   const dispatch = useDispatch();
 
   const handleChange = e => {
